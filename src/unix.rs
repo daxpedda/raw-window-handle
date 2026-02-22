@@ -3,6 +3,14 @@ use core::num::NonZeroU32;
 use core::ptr::NonNull;
 
 /// Raw display handle for Xlib.
+///
+/// ## Thread Safety
+///
+/// Reads and writes to and from the X server are internally secure by a [mutex].
+/// Therefore this type is `Send` and `Sync`. This means it can be sent to or
+/// used from other threads.
+///
+/// [mutex]: https://gitlab.freedesktop.org/xorg/lib/libx11/-/blob/master/src/locking.c?ref_type=heads#L596
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct XlibDisplayHandle {
@@ -19,6 +27,9 @@ pub struct XlibDisplayHandle {
     /// given that multiple screens usually reside on different GPUs.
     pub screen: c_int,
 }
+
+unsafe impl Send for XlibDisplayHandle {}
+unsafe impl Sync for XlibDisplayHandle {}
 
 impl XlibDisplayHandle {
     /// Create a new handle to a display.
@@ -43,6 +54,11 @@ impl XlibDisplayHandle {
 }
 
 /// Raw window handle for Xlib.
+///
+/// ## Thread Safety
+///
+/// This type is nothing more than a numeric identifier, therefore it is `Send`
+/// and `Sync`. This means it can be safely sent to or used from other threads.
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct XlibWindowHandle {
@@ -54,7 +70,6 @@ pub struct XlibWindowHandle {
 
 impl XlibWindowHandle {
     /// Create a new handle to a window.
-    ///
     ///
     /// # Example
     ///
@@ -77,6 +92,14 @@ impl XlibWindowHandle {
 }
 
 /// Raw display handle for Xcb.
+///
+/// ## Thread Safety
+///
+/// Reads and writes to and from the X server are internally secure by a [mutex].
+/// Therefore this type is `Send` and `Sync`. This means it can be sent to or
+/// used from other threads.
+///
+/// [mutex]: https://gitlab.freedesktop.org/xorg/lib/libxcb/-/blob/master/src/xcb_conn.c?ref_type=heads#L165
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct XcbDisplayHandle {
@@ -93,6 +116,9 @@ pub struct XcbDisplayHandle {
     /// given that multiple screens usually reside on different GPUs.
     pub screen: c_int,
 }
+
+unsafe impl Send for XcbDisplayHandle {}
+unsafe impl Sync for XcbDisplayHandle {}
 
 impl XcbDisplayHandle {
     /// Create a new handle to a connection and screen.
@@ -117,6 +143,11 @@ impl XcbDisplayHandle {
 }
 
 /// Raw window handle for Xcb.
+///
+/// ## Thread Safety
+///
+/// This type is nothing more than a numeric identifier, therefore it is `Send`
+/// and `Sync`. This means it can be safely sent to or used from other threads.
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct XcbWindowHandle {
@@ -151,12 +182,20 @@ impl XcbWindowHandle {
 }
 
 /// Raw display handle for Wayland.
+///
+/// ## Thread Safety
+///
+/// `libwayland-client` is thread safe, therefore this type is `Send` and `Sync`.
+/// This means that this type can be sent to and from other threads.
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct WaylandDisplayHandle {
     /// A pointer to a `wl_display`.
     pub display: NonNull<c_void>,
 }
+
+unsafe impl Send for WaylandDisplayHandle {}
+unsafe impl Sync for WaylandDisplayHandle {}
 
 impl WaylandDisplayHandle {
     /// Create a new display handle.
@@ -179,12 +218,20 @@ impl WaylandDisplayHandle {
 }
 
 /// Raw window handle for Wayland.
+///
+/// ## Thread Safety
+///
+/// `libwayland-client` is thread safe, therefore this type is `Send` and `Sync`.
+/// This means that this type can be sent to and from other threads.
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct WaylandWindowHandle {
     /// A pointer to a `wl_surface`.
     pub surface: NonNull<c_void>,
 }
+
+unsafe impl Send for WaylandWindowHandle {}
+unsafe impl Sync for WaylandWindowHandle {}
 
 impl WaylandWindowHandle {
     /// Create a new handle to a surface.
@@ -207,6 +254,12 @@ impl WaylandWindowHandle {
 }
 
 /// Raw display handle for the Linux Kernel Mode Set/Direct Rendering Manager.
+///
+/// ## Thread Safety
+///
+/// The DRM display handle is a file descriptor, and file descriptors in Unix
+/// are thread-safe by default. Therefore this type is `Send` and `Sync`. This
+/// means that it can be sent to or used from other threads.
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct DrmDisplayHandle {
@@ -234,6 +287,12 @@ impl DrmDisplayHandle {
 }
 
 /// Raw window handle for the Linux Kernel Mode Set/Direct Rendering Manager.
+///
+/// ## Thread Safety
+///
+/// DRM "windows" are just planes, which are just numbers. Therefore this type
+/// is `Send` and `Sync`. This means that it can be sent to or used from other
+/// threads.
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct DrmWindowHandle {
@@ -260,12 +319,21 @@ impl DrmWindowHandle {
 }
 
 /// Raw display handle for the Linux Generic Buffer Manager.
+///
+/// ## Thread-Safety
+///
+/// GBM devices are not bound to a single thread; however, they are not
+/// internally secured by mutexes and cannot be used by multiple threads at
+/// once. Therefore this type is `Send` but not `Sync`. This means it can be
+/// sent to other threads but not used from other threads.
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct GbmDisplayHandle {
     /// The gbm device.
     pub gbm_device: NonNull<c_void>,
 }
+
+unsafe impl Send for GbmDisplayHandle {}
 
 impl GbmDisplayHandle {
     /// Create a new handle to a device.
@@ -288,12 +356,21 @@ impl GbmDisplayHandle {
 }
 
 /// Raw window handle for the Linux Generic Buffer Manager.
+///
+/// ## Thread-Safety
+///
+/// GBM surfaces are not bound to a single thread; however, they are not
+/// internally secured by mutexes and cannot be used by multiple threads at
+/// once. Therefore this type is `Send` but not `Sync`. This means it can be
+/// sent to other threads but not used from other threads.
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct GbmWindowHandle {
     /// The gbm surface.
     pub gbm_surface: NonNull<c_void>,
 }
+
+unsafe impl Send for GbmWindowHandle {}
 
 impl GbmWindowHandle {
     /// Create a new handle to a surface.

@@ -1,12 +1,32 @@
 use core::ffi::c_void;
+use core::marker::PhantomData;
 use core::ptr::NonNull;
 
 use super::DisplayHandle;
 
 /// Raw display handle for UIKit.
+///
+/// ## Thread Safety
+///
+/// Handles to UiKit objects can only be safely used from the thread that
+/// invoked `main()`. Therefore, all UiKit objects are `!Send` and `!Sync`.
+/// This means that this type cannot be sent to or used from other threads.
+///
+/// In addition, it is also expected that the consumer will take precautions to
+/// ensure that this object is only used on the thread that invoked `main()`.
+/// It is recommended to use [`objc2::MainThreadMarker`] as a strategy for
+/// ensuring this.
+///
+/// Note that this type does not contain any UiKit objects. However,
+/// it is kept `!Send` and `!Sync` for the event that UiKit objects are
+/// added to this type.
+///
+/// [`objc2::MainThreadMarker`]: https://docs.rs/objc2/latest/objc2/struct.MainThreadMarker.html
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct UiKitDisplayHandle {}
+pub struct UiKitDisplayHandle {
+    _thread_unsafe: PhantomData<*mut ()>,
+}
 
 impl UiKitDisplayHandle {
     /// Create a new empty display handle.
@@ -19,7 +39,9 @@ impl UiKitDisplayHandle {
     /// let handle = UiKitDisplayHandle::new();
     /// ```
     pub fn new() -> Self {
-        Self {}
+        Self {
+            _thread_unsafe: PhantomData,
+        }
     }
 }
 
@@ -82,6 +104,23 @@ impl DisplayHandle<'static> {
 /// }
 /// # }
 /// ```
+///
+/// ## Thread Safety
+///
+/// Handles to UiKit objects can only be safely used from the thread that
+/// invoked `main()`. Therefore, all UiKit objects are `!Send` and `!Sync`.
+/// This means that this type cannot be sent to or used from other threads.
+///
+/// In addition, it is also expected that the consumer will take precautions to
+/// ensure that this object is only used on the thread that invoked `main()`.
+/// It is recommended to use [`objc2::MainThreadMarker`] as a strategy for
+/// ensuring this.
+///
+/// Note that this type does not contain any UiKit objects. However,
+/// it is kept `!Send` and `!Sync` for the event that UiKit objects are
+/// added to this type.
+///
+/// [`objc2::MainThreadMarker`]: https://docs.rs/objc2/latest/objc2/struct.MainThreadMarker.html
 #[non_exhaustive]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct UiKitWindowHandle {
