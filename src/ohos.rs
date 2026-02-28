@@ -17,7 +17,7 @@
 use core::ffi::c_void;
 use core::ptr::NonNull;
 
-use super::DisplayHandle;
+use super::BorrowedDisplayHandle;
 
 /// Raw display handle for OpenHarmony.
 #[non_exhaustive]
@@ -39,7 +39,7 @@ impl OhosDisplayHandle {
     }
 }
 
-impl DisplayHandle<'static> {
+impl BorrowedDisplayHandle<'static> {
     /// Create an OpenHarmony-based display handle.
     ///
     /// As no data is borrowed by this handle, it is completely safe to create. This function
