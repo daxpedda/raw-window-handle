@@ -12,7 +12,7 @@
 //!
 //! ## Safety guarantees
 //!
-//! Please see the docs of [`HasWindowHandle`] and [`HasDisplayHandle`].
+//! Please see the docs of [`AsWindowHandle`] and [`AsDisplayHandle`].
 //!
 //! ## Platform handle initialization
 //!
@@ -38,6 +38,7 @@ mod appkit;
 mod borrowed;
 mod haiku;
 mod ohos;
+mod owned;
 mod redox;
 mod uikit;
 mod unix;
@@ -49,6 +50,7 @@ pub use appkit::{AppKitDisplayHandle, AppKitWindowHandle};
 pub use borrowed::{AsDisplayHandle, AsWindowHandle, BorrowedDisplayHandle, BorrowedWindowHandle};
 pub use haiku::{HaikuDisplayHandle, HaikuWindowHandle};
 pub use ohos::{OhosDisplayHandle, OhosNdkWindowHandle};
+pub use owned::{DisplayHandle, DisplayVtable, WindowHandle, WindowVtable};
 pub use redox::{OrbitalDisplayHandle, OrbitalWindowHandle};
 pub use uikit::{UiKitDisplayHandle, UiKitWindowHandle};
 pub use unix::{
@@ -76,7 +78,7 @@ use core::fmt;
 /// some hints on where this variant might be expected.
 ///
 /// Note that these "Availability Hints" are not normative. That is to say, a
-/// [`HasWindowHandle`] implementor is completely allowed to return something
+/// [`AsWindowHandle`] implementor is completely allowed to return something
 /// unexpected. (For example, it's legal for someone to return a
 /// [`RawWindowHandle::Xlib`] on macOS, it would just be weird, and probably
 /// requires something like XQuartz be used).
@@ -198,7 +200,7 @@ pub enum RawWindowHandle {
 /// some hints on where this variant might be expected.
 ///
 /// Note that these "Availability Hints" are not normative. That is to say, a
-/// [`HasDisplayHandle`] implementor is completely allowed to return something
+/// [`AsDisplayHandle`] implementor is completely allowed to return something
 /// unexpected. (For example, it's legal for someone to return a
 /// [`RawDisplayHandle::Xlib`] on macOS, it would just be weird, and probably
 /// requires something like XQuartz be used).
@@ -425,6 +427,11 @@ mod tests {
         assert_not_impl_any!(WebOffscreenCanvasWindowHandle: Send, Sync);
         assert_not_impl_any!(AndroidNdkWindowHandle: Send, Sync);
         assert_not_impl_any!(HaikuWindowHandle: Send, Sync);
+
+        assert_not_impl_any!(WindowHandle: Send, Sync);
+        assert_not_impl_any!(DisplayHandle: Send, Sync);
+        assert_impl_all!(WindowVtable: Send, Sync);
+        assert_impl_all!(DisplayVtable: Send, Sync);
     }
 
     #[allow(deprecated, unused)]
